@@ -1,0 +1,175 @@
+
+
+
+USE [TERA];
+GO
+
+DECLARE @SchemaName sysname = N'B_lawson';
+DECLARE @TableName  sysname = N'HR_Snapshot';
+DECLARE @ObjectId   int = OBJECT_ID(QUOTENAME(@SchemaName) + N'.' + QUOTENAME(@TableName));
+
+IF @ObjectId IS NULL
+BEGIN
+    RAISERROR('Table %s.%s not found.', 16, 1, @SchemaName, @TableName);
+    RETURN;
+END;
+
+DECLARE @sql nvarchar(max) = N'';
+
+;WITH cols AS
+(
+    SELECT
+        c.name AS ColumnName,
+        t.name AS TypeName,
+        c.max_length,
+        c.precision,
+        c.scale,
+        c.is_nullable,
+        c.is_masked,
+        FullType =
+            CASE
+                WHEN t.name IN ('varchar','char','varbinary','binary')
+                    THEN t.name + '(' + CASE WHEN c.max_length = -1 THEN 'MAX' ELSE CAST(c.max_length AS varchar(10)) END + ')'
+                WHEN t.name IN ('nvarchar','nchar')
+                    THEN t.name + '(' + CASE WHEN c.max_length = -1 THEN 'MAX' ELSE CAST(c.max_length / 2 AS varchar(10)) END + ')'
+                WHEN t.name IN ('decimal','numeric')
+                    THEN t.name + '(' + CAST(c.precision AS varchar(10)) + ',' + CAST(c.scale AS varchar(10)) + ')'
+                WHEN t.name IN ('datetime2','datetimeoffset','time')
+                    THEN t.name + '(' + CAST(c.scale AS varchar(10)) + ')'
+                ELSE t.name
+            END
+    FROM sys.columns c
+    INNER JOIN sys.types t
+        ON c.user_type_id = t.user_type_id
+    WHERE c.object_id = @ObjectId
+)
+SELECT @sql = @sql + '
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns
+    WHERE object_id = OBJECT_ID(N''' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + ''')
+      AND name = N''' + ColumnName + '''
+      AND is_masked = 0
+)
+BEGIN
+    ALTER TABLE ' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + '
+    ALTER COLUMN ' + QUOTENAME(ColumnName) + ' ' + FullType +
+    CASE WHEN is_nullable = 1 THEN ' NULL ' ELSE ' NOT NULL ' END +
+    CASE
+        WHEN ColumnName IN ('EMPLOYEE','FIRST_NAME','MIDDLE_INIT','MIDDLE_NAME','LAST_NAME','SUPERVISORS_EMP_NUM','SUPERVISOR','Created_By')
+            THEN 'ADD MASKED WITH (FUNCTION = ''default()'');'
+        WHEN ColumnName = 'EMAIL_ADDRESS'
+            THEN 'ADD MASKED WITH (FUNCTION = ''email()'');'
+        WHEN ColumnName IN ('BIRTHDATE','ANNIVERS_DATE','NEW_HIRE_DATE','DATE_HIRED','ADJ_HIRE_DATE','FST_DAY_WORKED','TERM_DATE','DEATH_DATE','LAST_DAY_PAID')
+            THEN 'ADD MASKED WITH (FUNCTION = ''default()'');'
+        WHEN ColumnName = 'AGE'
+            THEN 'ADD MASKED WITH (FUNCTION = ''default()'');'
+        WHEN ColumnName = 'SEX'
+            THEN 'ADD MASKED WITH (FUNCTION = ''partial(0,"X",0)'');'
+        ELSE ''
+    END + '
+END;
+'
+FROM cols
+WHERE ColumnName IN
+(
+    'EMPLOYEE',
+    'FIRST_NAME',
+    'MIDDLE_INIT',
+    'MIDDLE_NAME',
+    'LAST_NAME',
+    'SUPERVISORS_EMP_NUM',
+    'SUPERVISOR',
+    'BIRTHDATE',
+    'ANNIVERS_DATE',
+    'NEW_HIRE_DATE',
+    'DATE_HIRED',
+    'ADJ_HIRE_DATE',
+    'FST_DAY_WORKED',
+    'TERM_DATE',
+    'DEATH_DATE',
+    'LAST_DAY_PAID',
+    'AGE',
+    'SEX',
+    'EMAIL_ADDRESS',
+    'Created_By'
+);
+
+PRINT @sql;
+EXEC sys.sp_executesql @sql;
+GO
+
+
+
+++++++++++++++++++++++++++//////verifie what is mask.++++++++++++++++++++++++++++++++++++++++++++++++
+
+SELECT
+    c.name AS ColumnName,
+    c.is_masked,
+    mc.masking_function
+FROM sys.columns c
+LEFT JOIN sys.masked_columns mc
+    ON c.object_id = mc.object_id
+   AND c.column_id = mc.column_id
+WHERE c.object_id = OBJECT_ID(N'[B_lawson].[HR_Snapshot]')
+ORDER BY c.column_id;
+GO
++++++++++++++++++++++++++////////Script to remove dynamic masking later if needed+++++++++++++++++++
+
+USE [TERA];
+GO
+
+DECLARE @SchemaName sysname = N'B_lawson';
+DECLARE @TableName  sysname = N'HR_Snapshot';
+DECLARE @ObjectId   int = OBJECT_ID(QUOTENAME(@SchemaName) + N'.' + QUOTENAME(@TableName));
+
+DECLARE @sql nvarchar(max) = N'';
+
+;WITH cols AS
+(
+    SELECT
+        c.name AS ColumnName,
+        t.name AS TypeName,
+        c.max_length,
+        c.precision,
+        c.scale,
+        c.is_nullable,
+        c.is_masked,
+        FullType =
+            CASE
+                WHEN t.name IN ('varchar','char','varbinary','binary')
+                    THEN t.name + '(' + CASE WHEN c.max_length = -1 THEN 'MAX' ELSE CAST(c.max_length AS varchar(10)) END + ')'
+                WHEN t.name IN ('nvarchar','nchar')
+                    THEN t.name + '(' + CASE WHEN c.max_length = -1 THEN 'MAX' ELSE CAST(c.max_length / 2 AS varchar(10)) END + ')'
+                WHEN t.name IN ('decimal','numeric')
+                    THEN t.name + '(' + CAST(c.precision AS varchar(10)) + ',' + CAST(c.scale AS varchar(10)) + ')'
+                WHEN t.name IN ('datetime2','datetimeoffset','time')
+                    THEN t.name + '(' + CAST(c.scale AS varchar(10)) + ')'
+                ELSE t.name
+            END
+    FROM sys.columns c
+    INNER JOIN sys.types t
+        ON c.user_type_id = t.user_type_id
+    WHERE c.object_id = @ObjectId
+)
+SELECT @sql = @sql + '
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns
+    WHERE object_id = OBJECT_ID(N''' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + ''')
+      AND name = N''' + ColumnName + '''
+      AND is_masked = 1
+)
+BEGIN
+    ALTER TABLE ' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + '
+    ALTER COLUMN ' + QUOTENAME(ColumnName) + ' ' + FullType +
+    CASE WHEN is_nullable = 1 THEN ' NULL ' ELSE ' NOT NULL ' END +
+    'DROP MASKED;
+END;
+'
+FROM cols
+WHERE is_masked = 1;
+
+PRINT @sql;
+EXEC sys.sp_executesql @sql;
+GO
