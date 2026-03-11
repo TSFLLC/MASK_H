@@ -6,10 +6,9 @@ UPDATE h
 SET
     EMPLOYEE =
         CASE 
-            WHEN h.EMPLOYEE IS NULL OR NULLIF(LTRIM(RTRIM(CONVERT(varchar(200), h.EMPLOYEE))), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(CONVERT(varchar(200), h.EMPLOYEE)))) IN ('NONE','NULL','N/A','NA')
-            THEN h.EMPLOYEE
-            ELSE 'EMP' + RIGHT('00000000' + CAST(ABS(CAST(CHECKSUM(s.Seed + '_EMP') AS BIGINT)) % 100000000 AS varchar(8)), 8)
+            WHEN h.EMPLOYEE IS NULL
+            THEN NULL
+            ELSE ABS(CAST(CHECKSUM(s.Seed + '_EMP') AS BIGINT)) % 90000000 + 10000000
         END,
 
     FIRST_NAME =
@@ -55,10 +54,9 @@ SET
 
     SUPERVISORS_EMP_NUM =
         CASE
-            WHEN h.SUPERVISORS_EMP_NUM IS NULL OR NULLIF(LTRIM(RTRIM(CONVERT(varchar(200), h.SUPERVISORS_EMP_NUM))), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(CONVERT(varchar(200), h.SUPERVISORS_EMP_NUM)))) IN ('NONE','NULL','N/A','NA')
-            THEN h.SUPERVISORS_EMP_NUM
-            ELSE 'SUP' + RIGHT('00000000' + CAST(ABS(CAST(CHECKSUM(s.Seed + '_SUPNUM') AS BIGINT)) % 100000000 AS varchar(8)), 8)
+            WHEN h.SUPERVISORS_EMP_NUM IS NULL
+            THEN NULL
+            ELSE ABS(CAST(CHECKSUM(s.Seed + '_SUPNUM') AS BIGINT)) % 90000000 + 10000000
         END,
 
     SUPERVISOR =
@@ -70,92 +68,8 @@ SET
                 WHEN 0 THEN 'Anderson' WHEN 1 THEN 'Thomas' WHEN 2 THEN 'Jackson' WHEN 3 THEN 'White' WHEN 4 THEN 'Harris'
                 WHEN 5 THEN 'Martin' WHEN 6 THEN 'Thompson' WHEN 7 THEN 'Moore' WHEN 8 THEN 'Taylor' WHEN 9 THEN 'Clark'
             END
-        END,
-
-    BIRTHDATE =
-        CASE
-            WHEN h.BIRTHDATE IS NULL THEN NULL
-            ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_DOB') AS BIGINT)) % 25550, CONVERT(date,'1940-01-01'))
-        END,
-
-    AGE =
-        CASE
-            WHEN h.BIRTHDATE IS NULL THEN h.AGE
-            WHEN h.AGE IS NULL THEN NULL
-            ELSE
-                DATEDIFF(YEAR, bd.MaskedBirthdate, CAST(GETDATE() AS date))
-                - CASE
-                    WHEN DATEADD(YEAR, DATEDIFF(YEAR, bd.MaskedBirthdate, CAST(GETDATE() AS date)), bd.MaskedBirthdate) > CAST(GETDATE() AS date)
-                    THEN 1 ELSE 0
-                  END
-        END,
-
-    SEX =
-        CASE
-            WHEN h.SEX IS NULL OR NULLIF(LTRIM(RTRIM(h.SEX)), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(h.SEX))) IN ('NONE','NULL','N/A','NA')
-            THEN h.SEX
-            ELSE CASE ABS(CAST(CHECKSUM(s.Seed + '_SEX') AS BIGINT)) % 3
-                WHEN 0 THEN 'M' WHEN 1 THEN 'F' WHEN 2 THEN 'U'
-            END
-        END,
-
-    DEATH_DATE =
-        CASE
-            WHEN h.DEATH_DATE IS NULL THEN NULL
-            ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_DTH') AS BIGINT)) % 12000, CONVERT(date,'2010-01-01'))
-        END,
-
-    EMAIL_ADDRESS =
-        CASE
-            WHEN h.EMAIL_ADDRESS IS NULL OR NULLIF(LTRIM(RTRIM(h.EMAIL_ADDRESS)), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(h.EMAIL_ADDRESS))) IN ('NONE','NULL','N/A','NA')
-            THEN h.EMAIL_ADDRESS
-            ELSE 'user' + RIGHT(CONVERT(varchar(40), ABS(CAST(CHECKSUM(s.Seed + '_EM') AS BIGINT))), 12) + '@example.com'
-        END,
-
-    ANNIVERS_DATE =
-        CASE WHEN h.ANNIVERS_DATE IS NULL THEN NULL
-             ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_ANN') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01'))
-        END,
-
-    NEW_HIRE_DATE =
-        CASE WHEN h.NEW_HIRE_DATE IS NULL THEN NULL
-             ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_NHD') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01'))
-        END,
-
-    DATE_HIRED =
-        CASE WHEN h.DATE_HIRED IS NULL THEN NULL
-             ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_DHD') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01'))
-        END,
-
-    ADJ_HIRE_DATE =
-        CASE WHEN h.ADJ_HIRE_DATE IS NULL THEN NULL
-             ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_AHD') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01'))
-        END,
-
-    FST_DAY_WORKED =
-        CASE WHEN h.FST_DAY_WORKED IS NULL THEN NULL
-             ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_FDW') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01'))
-        END,
-
-    TERM_DATE =
-        CASE WHEN h.TERM_DATE IS NULL THEN NULL
-             ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_TRM') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01'))
-        END,
-
-    LAST_DAY_PAID =
-        CASE WHEN h.LAST_DAY_PAID IS NULL THEN NULL
-             ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_LDP') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01'))
-        END,
-
-    Created_By =
-        CASE
-            WHEN h.Created_By IS NULL OR NULLIF(LTRIM(RTRIM(CONVERT(varchar(200), h.Created_By))), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(CONVERT(varchar(200), h.Created_By)))) IN ('NONE','NULL','N/A','NA')
-            THEN h.Created_By
-            ELSE 'system_' + RIGHT(CONVERT(varchar(20), ABS(CAST(CHECKSUM(s.Seed + '_CBY') AS BIGINT))), 6)
         END
+-- keep the rest of your script unchanged
 FROM [S_people].[HR_Snapshots] h
 CROSS APPLY (
     SELECT Seed =
