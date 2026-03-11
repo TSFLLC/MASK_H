@@ -98,173 +98,97 @@ GO
 
 USE [TERA];
 GO
+SET NOCOUNT ON;
 
-IF OBJECT_ID(N'[S_people].[trg_HR_Snapshots_StaticMask_INS]', 'TR') IS NOT NULL
-    DROP TRIGGER [S_people].[trg_HR_Snapshots_StaticMask_INS];
-GO
-
-CREATE TRIGGER [S_people].[trg_HR_Snapshots_StaticMask_INS]
-ON [S_people].[HR_Snapshots]
-INSTEAD OF INSERT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    ;WITH src AS (
-        SELECT
-            i.*,
-            Seed =
-                COALESCE(
-                    NULLIF(LTRIM(RTRIM(
-                        COALESCE(CONVERT(varchar(200), i.EMPLOYEE), '') + '|' +
-                        COALESCE(i.FIRST_NAME, '') + '|' +
-                        COALESCE(i.LAST_NAME, '') + '|' +
-                        COALESCE(i.EMAIL_ADDRESS, '') + '|' +
-                        COALESCE(CONVERT(varchar(10), i.BIRTHDATE, 120), '')
-                    )), ''),
-                    CONVERT(varchar(36), NEWID())
-                )
-        FROM inserted i
-    )
-    INSERT INTO [S_people].[HR_Snapshots]
-    (
-        [JOB_CODE],[JOB_CLASS],[SCHEDULE],[PROCESS_LEVEL],[DEPARTMENT],[COMPANY],[MARKET],[MKT_ID_2],[LOCAT_CODE],[FACILITY_NAME],
-        [EMPLOYEE],[FIRST_NAME],[MIDDLE_INIT],[MIDDLE_NAME],[LAST_NAME],
-        [EMP_STATUS],[EMP_STATUS_DESC],[CODE_DESC],[REASON_CODE],[REASON_EFF_DT],[EXEMPT_EMP],[AGE],[SEX],[EEO_CLASS],
-        [DEPARTMENT_NAME],[JOB_CLASS_DESC],[JOB_CODE_DESC],[POSITION],[POSITION_DESC],[USER_LEVEL],[SUPERVISOR_IND],
-        [SUPERVISORS_EMP_NUM],[SUPERVISOR],[SUPERVISORS_CODE],[SUPERVISORS_DESC],[SCHEDULE_DESC],[HM_ACCOUNT],[HM_ACCT_UNIT],[HM_DIST_CO],
-        [BIRTHDATE],[ANNIVERS_DATE],[NEW_HIRE_DATE],[DATE_HIRED],[ADJ_HIRE_DATE],[FST_DAY_WORKED],[TERM_DATE],[DEATH_DATE],[LAST_DAY_PAID],
-        [CREATION_DATE],[CREATE_DATE],[FTE],[NBR_FTE],[FTE_RAW],[FTE_TOTAL],[PREV_EMP_STATUS],[DATA_MONTH],[EMAIL_ADDRESS],[SourceId],[Created_By],[Created_Date],[Record_Checksum]
-    )
-    SELECT
-        i.[JOB_CODE],i.[JOB_CLASS],i.[SCHEDULE],i.[PROCESS_LEVEL],i.[DEPARTMENT],i.[COMPANY],i.[MARKET],i.[MKT_ID_2],i.[LOCAT_CODE],i.[FACILITY_NAME],
-
+UPDATE h
+SET
+    EMPLOYEE =
         CASE 
-            WHEN i.EMPLOYEE IS NULL OR NULLIF(LTRIM(RTRIM(CONVERT(varchar(200), i.EMPLOYEE))), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(CONVERT(varchar(200), i.EMPLOYEE)))) IN ('NONE','NULL','N/A','NA')
-            THEN i.EMPLOYEE
-            ELSE 'EMP' + RIGHT('00000000' + CAST(ABS(CAST(CHECKSUM(i.Seed + '_EMP') AS BIGINT)) % 100000000 AS varchar(8)), 8)
+            WHEN h.EMPLOYEE IS NULL
+            THEN NULL
+            ELSE ABS(CAST(CHECKSUM(s.Seed + '_EMP') AS BIGINT)) % 90000000 + 10000000
         END,
 
+    FIRST_NAME =
         CASE
-            WHEN i.FIRST_NAME IS NULL OR NULLIF(LTRIM(RTRIM(i.FIRST_NAME)), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(i.FIRST_NAME))) IN ('NONE','NULL','N/A','NA')
-            THEN i.FIRST_NAME
-            ELSE CASE ABS(CAST(CHECKSUM(i.Seed + '_FN') AS BIGINT)) % 10
+            WHEN h.FIRST_NAME IS NULL OR NULLIF(LTRIM(RTRIM(h.FIRST_NAME)), '') IS NULL
+                 OR UPPER(LTRIM(RTRIM(h.FIRST_NAME))) IN ('NONE','NULL','N/A','NA')
+            THEN h.FIRST_NAME
+            ELSE CASE ABS(CAST(CHECKSUM(s.Seed + '_FN') AS BIGINT)) % 10
                 WHEN 0 THEN 'James' WHEN 1 THEN 'Mary' WHEN 2 THEN 'John' WHEN 3 THEN 'Patricia' WHEN 4 THEN 'Robert'
                 WHEN 5 THEN 'Linda' WHEN 6 THEN 'Michael' WHEN 7 THEN 'Barbara' WHEN 8 THEN 'David' WHEN 9 THEN 'Elizabeth'
             END
         END,
 
+    MIDDLE_INIT =
         CASE
-            WHEN i.MIDDLE_INIT IS NULL OR NULLIF(LTRIM(RTRIM(i.MIDDLE_INIT)), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(i.MIDDLE_INIT))) IN ('NONE','NULL','N/A','NA')
-            THEN i.MIDDLE_INIT
-            ELSE CHAR(65 + (ABS(CAST(CHECKSUM(i.Seed + '_MI') AS BIGINT)) % 26))
+            WHEN h.MIDDLE_INIT IS NULL OR NULLIF(LTRIM(RTRIM(h.MIDDLE_INIT)), '') IS NULL
+                 OR UPPER(LTRIM(RTRIM(h.MIDDLE_INIT))) IN ('NONE','NULL','N/A','NA')
+            THEN h.MIDDLE_INIT
+            ELSE CHAR(65 + (ABS(CAST(CHECKSUM(s.Seed + '_MI') AS BIGINT)) % 26))
         END,
 
+    MIDDLE_NAME =
         CASE
-            WHEN i.MIDDLE_NAME IS NULL OR NULLIF(LTRIM(RTRIM(i.MIDDLE_NAME)), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(i.MIDDLE_NAME))) IN ('NONE','NULL','N/A','NA')
-            THEN i.MIDDLE_NAME
-            ELSE CASE ABS(CAST(CHECKSUM(i.Seed + '_MN') AS BIGINT)) % 10
+            WHEN h.MIDDLE_NAME IS NULL OR NULLIF(LTRIM(RTRIM(h.MIDDLE_NAME)), '') IS NULL
+                 OR UPPER(LTRIM(RTRIM(h.MIDDLE_NAME))) IN ('NONE','NULL','N/A','NA')
+            THEN h.MIDDLE_NAME
+            ELSE CASE ABS(CAST(CHECKSUM(s.Seed + '_MN') AS BIGINT)) % 10
                 WHEN 0 THEN 'Allen' WHEN 1 THEN 'Marie' WHEN 2 THEN 'Lee' WHEN 3 THEN 'Grace' WHEN 4 THEN 'Ray'
                 WHEN 5 THEN 'Ann' WHEN 6 THEN 'Scott' WHEN 7 THEN 'Jean' WHEN 8 THEN 'Paul' WHEN 9 THEN 'Lynn'
             END
         END,
 
+    LAST_NAME =
         CASE
-            WHEN i.LAST_NAME IS NULL OR NULLIF(LTRIM(RTRIM(i.LAST_NAME)), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(i.LAST_NAME))) IN ('NONE','NULL','N/A','NA')
-            THEN i.LAST_NAME
-            ELSE CASE ABS(CAST(CHECKSUM(i.Seed + '_LN') AS BIGINT)) % 10
+            WHEN h.LAST_NAME IS NULL OR NULLIF(LTRIM(RTRIM(h.LAST_NAME)), '') IS NULL
+                 OR UPPER(LTRIM(RTRIM(h.LAST_NAME))) IN ('NONE','NULL','N/A','NA')
+            THEN h.LAST_NAME
+            ELSE CASE ABS(CAST(CHECKSUM(s.Seed + '_LN') AS BIGINT)) % 10
                 WHEN 0 THEN 'Smith' WHEN 1 THEN 'Johnson' WHEN 2 THEN 'Williams' WHEN 3 THEN 'Brown' WHEN 4 THEN 'Jones'
                 WHEN 5 THEN 'Garcia' WHEN 6 THEN 'Miller' WHEN 7 THEN 'Davis' WHEN 8 THEN 'Rodriguez' WHEN 9 THEN 'Martinez'
             END
         END,
 
-        i.[EMP_STATUS],i.[EMP_STATUS_DESC],i.[CODE_DESC],i.[REASON_CODE],i.[REASON_EFF_DT],i.[EXEMPT_EMP],
-
+    SUPERVISORS_EMP_NUM =
         CASE
-            WHEN i.BIRTHDATE IS NULL THEN i.AGE
-            WHEN i.AGE IS NULL THEN NULL
-            ELSE
-                DATEDIFF(YEAR, bd.MaskedBirthdate, CAST(GETDATE() AS date))
-                - CASE
-                    WHEN DATEADD(YEAR, DATEDIFF(YEAR, bd.MaskedBirthdate, CAST(GETDATE() AS date)), bd.MaskedBirthdate) > CAST(GETDATE() AS date)
-                    THEN 1 ELSE 0
-                  END
+            WHEN h.SUPERVISORS_EMP_NUM IS NULL
+            THEN NULL
+            ELSE ABS(CAST(CHECKSUM(s.Seed + '_SUPNUM') AS BIGINT)) % 90000000 + 10000000
         END,
 
+    SUPERVISOR =
         CASE
-            WHEN i.SEX IS NULL OR NULLIF(LTRIM(RTRIM(i.SEX)), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(i.SEX))) IN ('NONE','NULL','N/A','NA')
-            THEN i.SEX
-            ELSE CASE ABS(CAST(CHECKSUM(i.Seed + '_SEX') AS BIGINT)) % 3
-                WHEN 0 THEN 'M' WHEN 1 THEN 'F' WHEN 2 THEN 'U'
-            END
-        END,
-
-        i.[EEO_CLASS],i.[DEPARTMENT_NAME],i.[JOB_CLASS_DESC],i.[JOB_CODE_DESC],i.[POSITION],i.[POSITION_DESC],i.[USER_LEVEL],i.[SUPERVISOR_IND],
-
-        CASE
-            WHEN i.SUPERVISORS_EMP_NUM IS NULL OR NULLIF(LTRIM(RTRIM(CONVERT(varchar(200), i.SUPERVISORS_EMP_NUM))), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(CONVERT(varchar(200), i.SUPERVISORS_EMP_NUM)))) IN ('NONE','NULL','N/A','NA')
-            THEN i.SUPERVISORS_EMP_NUM
-            ELSE 'SUP' + RIGHT('00000000' + CAST(ABS(CAST(CHECKSUM(i.Seed + '_SUPNUM') AS BIGINT)) % 100000000 AS varchar(8)), 8)
-        END,
-
-        CASE
-            WHEN i.SUPERVISOR IS NULL OR NULLIF(LTRIM(RTRIM(i.SUPERVISOR)), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(i.SUPERVISOR))) IN ('NONE','NULL','N/A','NA')
-            THEN i.SUPERVISOR
-            ELSE CASE ABS(CAST(CHECKSUM(i.Seed + '_SUP') AS BIGINT)) % 10
+            WHEN h.SUPERVISOR IS NULL OR NULLIF(LTRIM(RTRIM(h.SUPERVISOR)), '') IS NULL
+                 OR UPPER(LTRIM(RTRIM(h.SUPERVISOR))) IN ('NONE','NULL','N/A','NA')
+            THEN h.SUPERVISOR
+            ELSE CASE ABS(CAST(CHECKSUM(s.Seed + '_SUP') AS BIGINT)) % 10
                 WHEN 0 THEN 'Anderson' WHEN 1 THEN 'Thomas' WHEN 2 THEN 'Jackson' WHEN 3 THEN 'White' WHEN 4 THEN 'Harris'
                 WHEN 5 THEN 'Martin' WHEN 6 THEN 'Thompson' WHEN 7 THEN 'Moore' WHEN 8 THEN 'Taylor' WHEN 9 THEN 'Clark'
             END
-        END,
-
-        i.[SUPERVISORS_CODE],i.[SUPERVISORS_DESC],i.[SCHEDULE_DESC],i.[HM_ACCOUNT],i.[HM_ACCT_UNIT],i.[HM_DIST_CO],
-
-        bd.MaskedBirthdate,
-
-        CASE WHEN i.ANNIVERS_DATE IS NULL THEN NULL ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(i.Seed + '_ANN') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01')) END,
-        CASE WHEN i.NEW_HIRE_DATE IS NULL THEN NULL ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(i.Seed + '_NHD') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01')) END,
-        CASE WHEN i.DATE_HIRED IS NULL THEN NULL ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(i.Seed + '_DHD') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01')) END,
-        CASE WHEN i.ADJ_HIRE_DATE IS NULL THEN NULL ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(i.Seed + '_AHD') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01')) END,
-        CASE WHEN i.FST_DAY_WORKED IS NULL THEN NULL ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(i.Seed + '_FDW') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01')) END,
-        CASE WHEN i.TERM_DATE IS NULL THEN NULL ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(i.Seed + '_TRM') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01')) END,
-        CASE WHEN i.DEATH_DATE IS NULL THEN NULL ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(i.Seed + '_DTH') AS BIGINT)) % 12000, CONVERT(date,'2010-01-01')) END,
-        CASE WHEN i.LAST_DAY_PAID IS NULL THEN NULL ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(i.Seed + '_LDP') AS BIGINT)) % 12000, CONVERT(date,'2000-01-01')) END,
-
-        i.[CREATION_DATE],i.[CREATE_DATE],i.[FTE],i.[NBR_FTE],i.[FTE_RAW],i.[FTE_TOTAL],i.[PREV_EMP_STATUS],i.[DATA_MONTH],
-
+        END
+-- keep the rest of your script unchanged
+FROM [S_people].[HR_Snapshots] h
+CROSS APPLY (
+    SELECT Seed =
+        COALESCE(
+            NULLIF(LTRIM(RTRIM(
+                COALESCE(CONVERT(varchar(200), h.EMPLOYEE), '') + '|' +
+                COALESCE(h.FIRST_NAME, '') + '|' +
+                COALESCE(h.LAST_NAME, '') + '|' +
+                COALESCE(h.EMAIL_ADDRESS, '') + '|' +
+                COALESCE(CONVERT(varchar(10), h.BIRTHDATE, 120), '')
+            )), ''),
+            CONVERT(varchar(36), NEWID())
+        )
+) s
+CROSS APPLY (
+    SELECT MaskedBirthdate =
         CASE
-            WHEN i.EMAIL_ADDRESS IS NULL OR NULLIF(LTRIM(RTRIM(i.EMAIL_ADDRESS)), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(i.EMAIL_ADDRESS))) IN ('NONE','NULL','N/A','NA')
-            THEN i.EMAIL_ADDRESS
-            ELSE 'user' + RIGHT(CONVERT(varchar(40), ABS(CAST(CHECKSUM(i.Seed + '_EM') AS BIGINT))), 12) + '@example.com'
-        END,
-
-        i.[SourceId],
-
-        CASE
-            WHEN i.Created_By IS NULL OR NULLIF(LTRIM(RTRIM(CONVERT(varchar(200), i.Created_By))), '') IS NULL
-                 OR UPPER(LTRIM(RTRIM(CONVERT(varchar(200), i.Created_By)))) IN ('NONE','NULL','N/A','NA')
-            THEN i.Created_By
-            ELSE 'system_' + RIGHT(CONVERT(varchar(20), ABS(CAST(CHECKSUM(i.Seed + '_CBY') AS BIGINT))), 6)
-        END,
-
-        i.[Created_Date],i.[Record_Checksum]
-    FROM src i
-    CROSS APPLY (
-        SELECT MaskedBirthdate =
-            CASE
-                WHEN i.BIRTHDATE IS NULL THEN NULL
-                ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(i.Seed + '_DOB') AS BIGINT)) % 25550, CONVERT(date,'1940-01-01'))
-            END
-    ) bd;
-END;
+            WHEN h.BIRTHDATE IS NULL THEN NULL
+            ELSE DATEADD(DAY, ABS(CAST(CHECKSUM(s.Seed + '_DOB') AS BIGINT)) % 25550, CONVERT(date,'1940-01-01'))
+        END
+) bd;
 GO
 
 
@@ -297,16 +221,48 @@ ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [LAST_DAY_PAID]       date   
 ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [Created_By]          varchar(200) MASKED WITH (FUNCTION = 'partial(1,"XXXX",0)');
 GO
 
-+++++++++++++++++++++++++++++///verify
++++++++++++++++++++++++++++++///remove masking+++++++++++
 
-SELECT 
-    c.name,
-    t.name AS data_type,
-    c.max_length,
-    c.precision,
-    c.scale
-FROM sys.columns c
-JOIN sys.types t
-  ON c.user_type_id = t.user_type_id
-WHERE c.object_id = OBJECT_ID(N'[S_people].[HR_Snapshots]')
-ORDER BY c.column_id;
+USE [TERA];
+GO
+
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [EMPLOYEE] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [FIRST_NAME] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [MIDDLE_INIT] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [MIDDLE_NAME] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [LAST_NAME] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [SUPERVISORS_EMP_NUM] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [SUPERVISOR] DROP MASKED;
+
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [BIRTHDATE] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [AGE] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [SEX] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [DEATH_DATE] DROP MASKED;
+
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [EMAIL_ADDRESS] DROP MASKED;
+
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [ANNIVERS_DATE] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [NEW_HIRE_DATE] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [DATE_HIRED] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [ADJ_HIRE_DATE] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [FST_DAY_WORKED] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [TERM_DATE] DROP MASKED;
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [LAST_DAY_PAID] DROP MASKED;
+
+ALTER TABLE [S_people].[HR_Snapshots] ALTER COLUMN [Created_By] DROP MASKED;
+
+GO
+
++++++++++++++++++++++verify++++++++++++++++++++++++++++++++++++++++++++
+SELECT
+t.name AS TableName,
+c.name AS ColumnName,
+mc.masking_function
+FROM sys.masked_columns mc
+JOIN sys.columns c
+    ON mc.object_id = c.object_id
+    AND mc.column_id = c.column_id
+JOIN sys.tables t
+    ON mc.object_id = t.object_id
+WHERE t.name = 'HR_Snapshots';
+
