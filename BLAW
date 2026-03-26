@@ -1,126 +1,223 @@
-[JOB_CODE]
-      ,[JOB_CLASS]
-      ,[SCHEDULE]
-      ,[PROCESS_LEVEL]
-      ,[DEPARTMENT]
-      ,[COMPANY]
-      ,[MARKET]
-      ,[MKT_ID_2]
-      ,[LOCAT_CODE]
-      ,[FACILITY_NAME]
-      ,[EMPLOYEE]
-      ,[FIRST_NAME]
-      ,[MIDDLE_INIT]
-      ,[MIDDLE_NAME]
-      ,[LAST_NAME]
-      ,[EMP_STATUS]
-      ,[EMP_STATUS_DESC]
-      ,[CODE_DESC]
-      ,[REASON_CODE]
-      ,[REASON_EFF_DT]
-      ,[EXEMPT_EMP]
-      ,[AGE]
-      ,[SEX]
-      ,[EEO_CLASS]
-      ,[DEPARTMENT_NAME]
-      ,[JOB_CLASS_DESC]
-      ,[JOB_CODE_DESC]
-      ,[POSITION]
-      ,[POSITION_DESC]
-      ,[USER_LEVEL]
-      ,[SUPERVISOR_IND]
-      ,[SUPERVISORS_EMP_NUM]
-      ,[SUPERVISOR]
-      ,[SUPERVISORS_CODE]
-      ,[SUPERVISORS_DESC]
-      ,[SCHEDULE_DESC]
-      ,[HM_ACCOUNT]
-      ,[HM_ACCT_UNIT]
-      ,[HM_DIST_CO]
-      ,[BIRTHDATE]
-      ,[ANNIVERS_DATE]
-      ,[NEW_HIRE_DATE]
-      ,[DATE_HIRED]
-      ,[ADJ_HIRE_DATE]
-      ,[FST_DAY_WORKED]
-      ,[TERM_DATE]
-      ,[DEATH_DATE]
-      ,[LAST_DAY_PAID]
-      ,[CREATION_DATE]
-      ,[CREATE_DATE]
-      ,[FTE]
-      ,[NBR_FTE]
-      ,[FTE_RAW]
-      ,[FTE_TOTAL]
-      ,[PREV_EMP_STATUS]
-      ,[DATA_MONTH]
-      ,[EMAIL_ADDRESS]
-      ,[SourceId]
-      ,[Created_By]
-      ,[Created_Date]
-      ,[Record_Checksum]
-  FROM [TERA].[S_people].[UT_North_Snapshots]
 
-[DATA_MONTH]
-      ,[COMPANY]
-      ,[MARKET]
-      ,[MKT_ID_2]
-      ,[PROCESS_LEVEL]
-      ,[LOCAT_CODE]
-      ,[FACILITY_NAME]
-      ,[EMPLOYEE]
-      ,[FIRST_NAME]
-      ,[MIDDLE_INIT]
-      ,[MIDDLE_NAME]
-      ,[LAST_NAME]
-      ,[EMP_STATUS]
-      ,[EMP_STATUS_DESC]
-      ,[CODE_DESC]
-      ,[REASON_CODE]
-      ,[REASON_EFF_DT]
-      ,[EXEMPT_EMP]
-      ,[AGE]
-      ,[SEX]
-      ,[EEO_CLASS]
-      ,[DEPARTMENT]
-      ,[DEPARTMENT_NAME]
-      ,[JOB_CLASS]
-      ,[JOB_CLASS_DESC]
-      ,[JOB_CODE]
-      ,[JOB_CODE_DESC]
-      ,[POSITION]
-      ,[POSITION_DESC]
-      ,[USER_LEVEL]
-      ,[SUPERVISOR_IND]
-      ,[SUPERVISORS_EMP_NUM]
-      ,[SUPERVISOR]
-      ,[SUPERVISORS_CODE]
-      ,[SUPERVISORS_DESC]
-      ,[SCHEDULE]
-      ,[SCHEDULE_DESC]
-      ,[HM_ACCOUNT]
-      ,[HM_ACCT_UNIT]
-      ,[HM_DIST_CO]
-      ,[BIRTHDATE]
-      ,[ANNIVERS_DATE]
-      ,[NEW_HIRE_DATE]
-      ,[DATE_HIRED]
-      ,[ADJ_HIRE_DATE]
-      ,[FST_DAY_WORKED]
-      ,[TERM_DATE]
-      ,[DEATH_DATE]
-      ,[LAST_DAY_PAID]
-      ,[CREATION_DATE]
-      ,[CREATE_DATE]
-      ,[FTE]
-      ,[NBR_FTE]
-      ,[FTE_Raw]
-      ,[FTE_Total]
-      ,[PREV_EMP_STATUS]
-      ,[COUNT]
-      ,[EMAIL_ADDRESS]
-      ,[SourceId]
-      ,[Created_Date]
-      ,[Created_By]
-  FROM [TERA].[B_lawson].[UT_North_Snapshot]
+UPDATE t
+SET
+    EMPLOYEE = 'EMP' + RIGHT('00000000' + CAST(ABS(CHECKSUM(EMPLOYEE, EMAIL_ADDRESS, FIRST_NAME, LAST_NAME)) % 100000000 AS varchar(8)), 8),
+    FIRST_NAME =
+        CASE ABS(CHECKSUM(EMPLOYEE, 'FN')) % 10
+            WHEN 0 THEN 'James' WHEN 1 THEN 'Mary' WHEN 2 THEN 'John' WHEN 3 THEN 'Patricia' WHEN 4 THEN 'Robert'
+            WHEN 5 THEN 'Linda' WHEN 6 THEN 'Michael' WHEN 7 THEN 'Barbara' WHEN 8 THEN 'David' WHEN 9 THEN 'Elizabeth'
+        END,
+    MIDDLE_INIT = CHAR(65 + ABS(CHECKSUM(EMPLOYEE, 'MI')) % 26),
+    MIDDLE_NAME =
+        CASE ABS(CHECKSUM(EMPLOYEE, 'MN')) % 6
+            WHEN 0 THEN 'Lee' WHEN 1 THEN 'Grace' WHEN 2 THEN 'Ann'
+            WHEN 3 THEN 'Jean' WHEN 4 THEN 'Ray' WHEN 5 THEN 'Marie'
+        END,
+    LAST_NAME =
+        CASE ABS(CHECKSUM(EMPLOYEE, 'LN')) % 10
+            WHEN 0 THEN 'Smith' WHEN 1 THEN 'Johnson' WHEN 2 THEN 'Williams' WHEN 3 THEN 'Brown' WHEN 4 THEN 'Jones'
+            WHEN 5 THEN 'Garcia' WHEN 6 THEN 'Miller' WHEN 7 THEN 'Davis' WHEN 8 THEN 'Rodriguez' WHEN 9 THEN 'Martinez'
+        END,
+    EMAIL_ADDRESS = 'user' + RIGHT(CAST(ABS(CHECKSUM(EMPLOYEE, EMAIL_ADDRESS)) AS varchar(20)), 8) + '@example.com',
+    BIRTHDATE = CASE WHEN BIRTHDATE IS NOT NULL
+                     THEN DATEADD(DAY, ABS(CHECKSUM(EMPLOYEE, 'BD')) % 3650, '1970-01-01')
+                     ELSE NULL END,
+    AGE = CASE
+            WHEN AGE IS NULL THEN NULL
+            WHEN AGE < 25 THEN 20
+            WHEN AGE BETWEEN 25 AND 34 THEN 30
+            WHEN AGE BETWEEN 35 AND 44 THEN 40
+            WHEN AGE BETWEEN 45 AND 54 THEN 50
+            WHEN AGE BETWEEN 55 AND 64 THEN 60
+            ELSE 65
+          END,
+    SEX = CASE WHEN SEX IS NULL THEN NULL ELSE 'U' END,
+    DEATH_DATE = NULL,
+    SUPERVISORS_EMP_NUM = CASE WHEN SUPERVISORS_EMP_NUM IS NULL THEN NULL
+                               ELSE 'SUP' + RIGHT('00000000' + CAST(ABS(CHECKSUM(SUPERVISORS_EMP_NUM, SUPERVISOR)) % 100000000 AS varchar(8)), 8) END,
+    SUPERVISOR =
+        CASE WHEN SUPERVISOR IS NULL THEN NULL
+             ELSE 'Manager' + RIGHT(CAST(ABS(CHECKSUM(SUPERVISOR, EMPLOYEE)) AS varchar(20)), 5)
+        END,
+    USER_LEVEL = CASE WHEN USER_LEVEL IS NULL THEN NULL ELSE 'MASKED' END
+FROM [TERA].[S_people].[UT_North_Snapshots] t;
+GO
 
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+UPDATE t
+SET
+    EMPLOYEE = 'EMP' + RIGHT('00000000' + CAST(ABS(CHECKSUM(EMPLOYEE, EMAIL_ADDRESS, FIRST_NAME, LAST_NAME)) % 100000000 AS varchar(8)), 8),
+    FIRST_NAME =
+        CASE ABS(CHECKSUM(EMPLOYEE, 'FN')) % 10
+            WHEN 0 THEN 'James' WHEN 1 THEN 'Mary' WHEN 2 THEN 'John' WHEN 3 THEN 'Patricia' WHEN 4 THEN 'Robert'
+            WHEN 5 THEN 'Linda' WHEN 6 THEN 'Michael' WHEN 7 THEN 'Barbara' WHEN 8 THEN 'David' WHEN 9 THEN 'Elizabeth'
+        END,
+    MIDDLE_INIT = CHAR(65 + ABS(CHECKSUM(EMPLOYEE, 'MI')) % 26),
+    MIDDLE_NAME =
+        CASE ABS(CHECKSUM(EMPLOYEE, 'MN')) % 6
+            WHEN 0 THEN 'Lee' WHEN 1 THEN 'Grace' WHEN 2 THEN 'Ann'
+            WHEN 3 THEN 'Jean' WHEN 4 THEN 'Ray' WHEN 5 THEN 'Marie'
+        END,
+    LAST_NAME =
+        CASE ABS(CHECKSUM(EMPLOYEE, 'LN')) % 10
+            WHEN 0 THEN 'Smith' WHEN 1 THEN 'Johnson' WHEN 2 THEN 'Williams' WHEN 3 THEN 'Brown' WHEN 4 THEN 'Jones'
+            WHEN 5 THEN 'Garcia' WHEN 6 THEN 'Miller' WHEN 7 THEN 'Davis' WHEN 8 THEN 'Rodriguez' WHEN 9 THEN 'Martinez'
+        END,
+    EMAIL_ADDRESS = 'user' + RIGHT(CAST(ABS(CHECKSUM(EMPLOYEE, EMAIL_ADDRESS)) AS varchar(20)), 8) + '@example.com',
+    BIRTHDATE = CASE WHEN BIRTHDATE IS NOT NULL
+                     THEN DATEADD(DAY, ABS(CHECKSUM(EMPLOYEE, 'BD')) % 3650, '1970-01-01')
+                     ELSE NULL END,
+    AGE = CASE
+            WHEN AGE IS NULL THEN NULL
+            WHEN AGE < 25 THEN 20
+            WHEN AGE BETWEEN 25 AND 34 THEN 30
+            WHEN AGE BETWEEN 35 AND 44 THEN 40
+            WHEN AGE BETWEEN 45 AND 54 THEN 50
+            WHEN AGE BETWEEN 55 AND 64 THEN 60
+            ELSE 65
+          END,
+    SEX = CASE WHEN SEX IS NULL THEN NULL ELSE 'U' END,
+    DEATH_DATE = NULL,
+    SUPERVISORS_EMP_NUM = CASE WHEN SUPERVISORS_EMP_NUM IS NULL THEN NULL
+                               ELSE 'SUP' + RIGHT('00000000' + CAST(ABS(CHECKSUM(SUPERVISORS_EMP_NUM, SUPERVISOR)) % 100000000 AS varchar(8)), 8) END,
+    SUPERVISOR =
+        CASE WHEN SUPERVISOR IS NULL THEN NULL
+             ELSE 'Manager' + RIGHT(CAST(ABS(CHECKSUM(SUPERVISOR, EMPLOYEE)) AS varchar(20)), 5)
+        END,
+    USER_LEVEL = CASE WHEN USER_LEVEL IS NULL THEN NULL ELSE 'MASKED' END
+FROM [TERA].[B_lawson].[UT_North_Snapshot] t;
+GO
+
++++++++++++++++++++++++++++++++TRIGGER===================================================================
+
+CREATE OR ALTER TRIGGER [TERA].[S_people].[trg_UT_North_Snapshots_Mask_Insert]
+ON [TERA].[S_people].[UT_North_Snapshots]
+INSTEAD OF INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO [TERA].[S_people].[UT_North_Snapshots]
+    (
+      [JOB_CODE],[JOB_CLASS],[SCHEDULE],[PROCESS_LEVEL],[DEPARTMENT],[COMPANY],[MARKET],[MKT_ID_2],[LOCAT_CODE],
+      [FACILITY_NAME],[EMPLOYEE],[FIRST_NAME],[MIDDLE_INIT],[MIDDLE_NAME],[LAST_NAME],[EMP_STATUS],[EMP_STATUS_DESC],
+      [CODE_DESC],[REASON_CODE],[REASON_EFF_DT],[EXEMPT_EMP],[AGE],[SEX],[EEO_CLASS],[DEPARTMENT_NAME],[JOB_CLASS_DESC],
+      [JOB_CODE_DESC],[POSITION],[POSITION_DESC],[USER_LEVEL],[SUPERVISOR_IND],[SUPERVISORS_EMP_NUM],[SUPERVISOR],
+      [SUPERVISORS_CODE],[SUPERVISORS_DESC],[SCHEDULE_DESC],[HM_ACCOUNT],[HM_ACCT_UNIT],[HM_DIST_CO],[BIRTHDATE],
+      [ANNIVERS_DATE],[NEW_HIRE_DATE],[DATE_HIRED],[ADJ_HIRE_DATE],[FST_DAY_WORKED],[TERM_DATE],[DEATH_DATE],
+      [LAST_DAY_PAID],[CREATION_DATE],[CREATE_DATE],[FTE],[NBR_FTE],[FTE_RAW],[FTE_TOTAL],[PREV_EMP_STATUS],
+      [DATA_MONTH],[EMAIL_ADDRESS],[SourceId],[Created_By],[Created_Date],[Record_Checksum]
+    )
+    SELECT
+      i.[JOB_CODE],i.[JOB_CLASS],i.[SCHEDULE],i.[PROCESS_LEVEL],i.[DEPARTMENT],i.[COMPANY],i.[MARKET],i.[MKT_ID_2],i.[LOCAT_CODE],
+      i.[FACILITY_NAME],
+      'EMP' + RIGHT('00000000' + CAST(ABS(CHECKSUM(i.[EMPLOYEE], i.[EMAIL_ADDRESS], i.[FIRST_NAME], i.[LAST_NAME])) % 100000000 AS varchar(8)), 8),
+      CASE ABS(CHECKSUM(i.[EMPLOYEE], 'FN')) % 10
+            WHEN 0 THEN 'James' WHEN 1 THEN 'Mary' WHEN 2 THEN 'John' WHEN 3 THEN 'Patricia' WHEN 4 THEN 'Robert'
+            WHEN 5 THEN 'Linda' WHEN 6 THEN 'Michael' WHEN 7 THEN 'Barbara' WHEN 8 THEN 'David' WHEN 9 THEN 'Elizabeth'
+      END,
+      CHAR(65 + ABS(CHECKSUM(i.[EMPLOYEE], 'MI')) % 26),
+      CASE ABS(CHECKSUM(i.[EMPLOYEE], 'MN')) % 6
+            WHEN 0 THEN 'Lee' WHEN 1 THEN 'Grace' WHEN 2 THEN 'Ann'
+            WHEN 3 THEN 'Jean' WHEN 4 THEN 'Ray' WHEN 5 THEN 'Marie'
+      END,
+      CASE ABS(CHECKSUM(i.[EMPLOYEE], 'LN')) % 10
+            WHEN 0 THEN 'Smith' WHEN 1 THEN 'Johnson' WHEN 2 THEN 'Williams' WHEN 3 THEN 'Brown' WHEN 4 THEN 'Jones'
+            WHEN 5 THEN 'Garcia' WHEN 6 THEN 'Miller' WHEN 7 THEN 'Davis' WHEN 8 THEN 'Rodriguez' WHEN 9 THEN 'Martinez'
+      END,
+      i.[EMP_STATUS],i.[EMP_STATUS_DESC],i.[CODE_DESC],i.[REASON_CODE],i.[REASON_EFF_DT],i.[EXEMPT_EMP],
+      CASE
+            WHEN i.[AGE] IS NULL THEN NULL
+            WHEN i.[AGE] < 25 THEN 20
+            WHEN i.[AGE] BETWEEN 25 AND 34 THEN 30
+            WHEN i.[AGE] BETWEEN 35 AND 44 THEN 40
+            WHEN i.[AGE] BETWEEN 45 AND 54 THEN 50
+            WHEN i.[AGE] BETWEEN 55 AND 64 THEN 60
+            ELSE 65
+      END,
+      CASE WHEN i.[SEX] IS NULL THEN NULL ELSE 'U' END,
+      i.[EEO_CLASS],i.[DEPARTMENT_NAME],i.[JOB_CLASS_DESC],i.[JOB_CODE_DESC],i.[POSITION],i.[POSITION_DESC],
+      CASE WHEN i.[USER_LEVEL] IS NULL THEN NULL ELSE 'MASKED' END,
+      i.[SUPERVISOR_IND],
+      CASE WHEN i.[SUPERVISORS_EMP_NUM] IS NULL THEN NULL
+           ELSE 'SUP' + RIGHT('00000000' + CAST(ABS(CHECKSUM(i.[SUPERVISORS_EMP_NUM], i.[SUPERVISOR])) % 100000000 AS varchar(8)), 8) END,
+      CASE WHEN i.[SUPERVISOR] IS NULL THEN NULL
+           ELSE 'Manager' + RIGHT(CAST(ABS(CHECKSUM(i.[SUPERVISOR], i.[EMPLOYEE])) AS varchar(20)), 5) END,
+      i.[SUPERVISORS_CODE],i.[SUPERVISORS_DESC],i.[SCHEDULE_DESC],i.[HM_ACCOUNT],i.[HM_ACCT_UNIT],i.[HM_DIST_CO],
+      CASE WHEN i.[BIRTHDATE] IS NOT NULL THEN DATEADD(DAY, ABS(CHECKSUM(i.[EMPLOYEE], 'BD')) % 3650, '1970-01-01') ELSE NULL END,
+      i.[ANNIVERS_DATE],i.[NEW_HIRE_DATE],i.[DATE_HIRED],i.[ADJ_HIRE_DATE],i.[FST_DAY_WORKED],i.[TERM_DATE],
+      NULL,
+      i.[LAST_DAY_PAID],i.[CREATION_DATE],i.[CREATE_DATE],i.[FTE],i.[NBR_FTE],i.[FTE_RAW],i.[FTE_TOTAL],i.[PREV_EMP_STATUS],
+      i.[DATA_MONTH],
+      'user' + RIGHT(CAST(ABS(CHECKSUM(i.[EMPLOYEE], i.[EMAIL_ADDRESS])) AS varchar(20)), 8) + '@example.com',
+      i.[SourceId],i.[Created_By],i.[Created_Date],i.[Record_Checksum]
+    FROM inserted i;
+END;
+GO
+++++++++++++++++++++++++++//Trigger Blawson+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+CREATE OR ALTER TRIGGER [TERA].[B_lawson].[trg_UT_North_Snapshot_Mask_Insert]
+ON [TERA].[B_lawson].[UT_North_Snapshot]
+INSTEAD OF INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO [TERA].[B_lawson].[UT_North_Snapshot]
+    (
+      [DATA_MONTH],[COMPANY],[MARKET],[MKT_ID_2],[PROCESS_LEVEL],[LOCAT_CODE],[FACILITY_NAME],[EMPLOYEE],[FIRST_NAME],
+      [MIDDLE_INIT],[MIDDLE_NAME],[LAST_NAME],[EMP_STATUS],[EMP_STATUS_DESC],[CODE_DESC],[REASON_CODE],[REASON_EFF_DT],
+      [EXEMPT_EMP],[AGE],[SEX],[EEO_CLASS],[DEPARTMENT],[DEPARTMENT_NAME],[JOB_CLASS],[JOB_CLASS_DESC],[JOB_CODE],
+      [JOB_CODE_DESC],[POSITION],[POSITION_DESC],[USER_LEVEL],[SUPERVISOR_IND],[SUPERVISORS_EMP_NUM],[SUPERVISOR],
+      [SUPERVISORS_CODE],[SUPERVISORS_DESC],[SCHEDULE],[SCHEDULE_DESC],[HM_ACCOUNT],[HM_ACCT_UNIT],[HM_DIST_CO],
+      [BIRTHDATE],[ANNIVERS_DATE],[NEW_HIRE_DATE],[DATE_HIRED],[ADJ_HIRE_DATE],[FST_DAY_WORKED],[TERM_DATE],[DEATH_DATE],
+      [LAST_DAY_PAID],[CREATION_DATE],[CREATE_DATE],[FTE],[NBR_FTE],[FTE_Raw],[FTE_Total],[PREV_EMP_STATUS],[COUNT],
+      [EMAIL_ADDRESS],[SourceId],[Created_Date],[Created_By]
+    )
+    SELECT
+      i.[DATA_MONTH],i.[COMPANY],i.[MARKET],i.[MKT_ID_2],i.[PROCESS_LEVEL],i.[LOCAT_CODE],i.[FACILITY_NAME],
+      'EMP' + RIGHT('00000000' + CAST(ABS(CHECKSUM(i.[EMPLOYEE], i.[EMAIL_ADDRESS], i.[FIRST_NAME], i.[LAST_NAME])) % 100000000 AS varchar(8)), 8),
+      CASE ABS(CHECKSUM(i.[EMPLOYEE], 'FN')) % 10
+            WHEN 0 THEN 'James' WHEN 1 THEN 'Mary' WHEN 2 THEN 'John' WHEN 3 THEN 'Patricia' WHEN 4 THEN 'Robert'
+            WHEN 5 THEN 'Linda' WHEN 6 THEN 'Michael' WHEN 7 THEN 'Barbara' WHEN 8 THEN 'David' WHEN 9 THEN 'Elizabeth'
+      END,
+      CHAR(65 + ABS(CHECKSUM(i.[EMPLOYEE], 'MI')) % 26),
+      CASE ABS(CHECKSUM(i.[EMPLOYEE], 'MN')) % 6
+            WHEN 0 THEN 'Lee' WHEN 1 THEN 'Grace' WHEN 2 THEN 'Ann'
+            WHEN 3 THEN 'Jean' WHEN 4 THEN 'Ray' WHEN 5 THEN 'Marie'
+      END,
+      CASE ABS(CHECKSUM(i.[EMPLOYEE], 'LN')) % 10
+            WHEN 0 THEN 'Smith' WHEN 1 THEN 'Johnson' WHEN 2 THEN 'Williams' WHEN 3 THEN 'Brown' WHEN 4 THEN 'Jones'
+            WHEN 5 THEN 'Garcia' WHEN 6 THEN 'Miller' WHEN 7 THEN 'Davis' WHEN 8 THEN 'Rodriguez' WHEN 9 THEN 'Martinez'
+      END,
+      i.[EMP_STATUS],i.[EMP_STATUS_DESC],i.[CODE_DESC],i.[REASON_CODE],i.[REASON_EFF_DT],i.[EXEMPT_EMP],
+      CASE
+            WHEN i.[AGE] IS NULL THEN NULL
+            WHEN i.[AGE] < 25 THEN 20
+            WHEN i.[AGE] BETWEEN 25 AND 34 THEN 30
+            WHEN i.[AGE] BETWEEN 35 AND 44 THEN 40
+            WHEN i.[AGE] BETWEEN 45 AND 54 THEN 50
+            WHEN i.[AGE] BETWEEN 55 AND 64 THEN 60
+            ELSE 65
+      END,
+      CASE WHEN i.[SEX] IS NULL THEN NULL ELSE 'U' END,
+      i.[EEO_CLASS],i.[DEPARTMENT],i.[DEPARTMENT_NAME],i.[JOB_CLASS],i.[JOB_CLASS_DESC],i.[JOB_CODE],i.[JOB_CODE_DESC],
+      i.[POSITION],i.[POSITION_DESC],
+      CASE WHEN i.[USER_LEVEL] IS NULL THEN NULL ELSE 'MASKED' END,
+      i.[SUPERVISOR_IND],
+      CASE WHEN i.[SUPERVISORS_EMP_NUM] IS NULL THEN NULL
+           ELSE 'SUP' + RIGHT('00000000' + CAST(ABS(CHECKSUM(i.[SUPERVISORS_EMP_NUM], i.[SUPERVISOR])) % 100000000 AS varchar(8)), 8) END,
+      CASE WHEN i.[SUPERVISOR] IS NULL THEN NULL
+           ELSE 'Manager' + RIGHT(CAST(ABS(CHECKSUM(i.[SUPERVISOR], i.[EMPLOYEE])) AS varchar(20)), 5) END,
+      i.[SUPERVISORS_CODE],i.[SUPERVISORS_DESC],i.[SCHEDULE],i.[SCHEDULE_DESC],i.[HM_ACCOUNT],i.[HM_ACCT_UNIT],i.[HM_DIST_CO],
+      CASE WHEN i.[BIRTHDATE] IS NOT NULL THEN DATEADD(DAY, ABS(CHECKSUM(i.[EMPLOYEE], 'BD')) % 3650, '1970-01-01') ELSE NULL END,
+      i.[ANNIVERS_DATE],i.[NEW_HIRE_DATE],i.[DATE_HIRED],i.[ADJ_HIRE_DATE],i.[FST_DAY_WORKED],i.[TERM_DATE],
+      NULL,
+      i.[LAST_DAY_PAID],i.[CREATION_DATE],i.[CREATE_DATE],i.[FTE],i.[NBR_FTE],i.[FTE_Raw],i.[FTE_Total],i.[PREV_EMP_STATUS],i.[COUNT],
+      'user' + RIGHT(CAST(ABS(CHECKSUM(i.[EMPLOYEE], i.[EMAIL_ADDRESS])) AS varchar(20)), 8) + '@example.com',
+      i.[SourceId],i.[Created_Date],i.[Created_By]
+    FROM inserted i;
+END;
+GO
