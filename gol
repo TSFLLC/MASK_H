@@ -1,0 +1,93 @@
+1. Implement Strong Fine-Grained Access Control
+
+Operating Model Pillar: Value Driven
+
+Goal Statement:
+Design and implement fine-grained access control mechanisms to ensure users access only the data necessary for their roles, aligned with security and compliance standards.
+
+KPIs (Polished):
+
+Implement row-level and column-level security (RLS/CLS) across all critical datasets (≥ 95% coverage)
+Reduce over-privileged access by at least 40%
+Ensure 100% alignment with HIPAA/security policies
+Achieve full audit traceability for sensitive data access
+Deliver monthly access review reports with actionable insights
+
+Business Impact:
+Improves data security posture, reduces compliance risk, and enforces least-privilege access across the organization.
+
+2. Finalize Data Masking Across All Tables
+
+Operating Model Pillar: Impact
+
+Goal Statement:
+Complete implementation and validation of data masking across all existing and new tables, ensuring compliance with data classification standards and protection of sensitive information.
+
+KPIs (Polished):
+
+Achieve 100% masking coverage for all classified sensitive columns (PHI/PII)
+Ensure new tables are automatically masked by default via governance controls
+Implement tokenization strategy for non-prod environments (DEV/QA)
+Conduct quarterly masking audits with 0 critical gaps
+Reduce exposure of sensitive data in non-prod environments to near zero
+
+Business Impact:
+Protects sensitive data, ensures regulatory compliance (HIPAA), and enables safe data usage for development and analytics.
+
+3. Strengthen Documentation and Governance Standards
+
+Operating Model Pillar: Consumer Centered
+
+Goal Statement:
+Establish and maintain standardized, accessible, and up-to-date documentation for data masking, access control, and governance processes.
+
+KPIs (Polished):
+
+Create centralized governance documentation repository (100% coverage)
+Standardize data security and masking procedures across all teams
+Reduce onboarding time for new team members by 30%
+Publish governance playbooks and SOPs for key processes
+Conduct biannual documentation reviews and updates
+
+Business Impact:
+Improves operational efficiency, reduces dependency on individuals, and ensures consistent implementation across teams.
+
+4. Achieve Operational Proficiency in Alation
+
+Operating Model Pillar: Growth Minded
+
+Goal Statement:
+Become fully operational in Alation to support enterprise data governance, metadata management, and data discovery initiatives.
+
+KPIs (Polished):
+
+Complete Alation certification/training and hands-on implementation
+Integrate TERA production database into Alation catalog
+Enable automated metadata ingestion and profiling (≥ 90% coverage)
+Configure data classification and sensitivity tagging
+Reduce data discovery time by 30% for business users
+Support governance workflows and stewardship adoption
+
+Business Impact:
+Enhances data visibility, accelerates analytics, and strengthens enterprise data governance capabilities.
+
+💡 Optional (Strong Add-On Goal – Highly Recommended)
+
+Given your profile (Cloud DBA + Security), you can impress leadership by adding this:
+
+5. Enhance Data Security Monitoring & Audit Automation
+
+Operating Model Pillar: Value Driven
+
+Goal Statement:
+Implement automated monitoring and alerting for sensitive data access to proactively detect and mitigate risks.
+
+KPIs:
+
+Deploy real-time alerts for PHI/PII access
+Implement weekly automated audit reports (SELECT, DROP, TRUNCATE, LOGIN failures)
+Reduce incident detection time by 50%
+Achieve full audit coverage for critical databases
+
+Impact:
+Moves organization from reactive → proactive security posture.
